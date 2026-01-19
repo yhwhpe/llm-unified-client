@@ -280,4 +280,26 @@ client, err := llm.NewClient(config)
 response, err := llm.GenerateSimple(ctx, client, "Hello")
 ```
 
-The new API is more flexible and supports multiple providers with a unified interface.
+### Migration Checklist
+
+1. **Replace import**: `agents/profile-builder/internal/llm` → `github.com/yhwhpe/llm-unified-client`
+2. **Update config**: `LLMConfig` → `llm.Config` with Provider enum
+3. **Change client creation**: `NewClient(config)` → `llm.NewClient(config)`
+4. **Update request building**: `Request{Prompt: "..."}` → `BuildSimpleRequest("...")`
+5. **Add resource management**: `defer client.Close()` for proper cleanup
+6. **Update error handling**: Use new response fields (`TokensUsed`, `ResponseTime`, `FinishReason`)
+7. **Use chat history**: `GenerateWithHistory` for conversation management
+8. **System prompts**: `GenerateWithSystemPrompt` for system instructions
+9. **Model parameters**: Use `SetTemperature()`, `SetMaxTokens()`, etc.
+10. **Provider selection**: Use `llm.ProviderDeepSeek`, `llm.ProviderOpenAI`, etc.
+
+### Detailed Migration Examples
+
+See `migration_guide.go` for comprehensive migration examples covering:
+- Simple text generation
+- Chat-based conversations
+- System prompt usage
+- Configuration updates
+- Error handling improvements
+
+The new API is more flexible and supports multiple providers with a unified interface, plus adds features like chat history management and streaming support preparation.
