@@ -2,6 +2,8 @@
 
 A unified Go client library for interacting with various Large Language Model providers including OpenAI, DeepSeek, Qwen (Alibaba Cloud), and Azure OpenAI.
 
+📖 **[Integration Guide](INTEGRATION_GUIDE.md)** - Complete integration instructions and examples
+
 ## Features
 
 - **Multiple Provider Support**: OpenAI, DeepSeek, Qwen, Azure OpenAI
@@ -56,6 +58,8 @@ func main() {
     fmt.Printf("Tokens used: %d, Response time: %v\n", response.TokensUsed, response.ResponseTime)
 }
 ```
+
+> 📖 **For comprehensive integration guide, see [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)**
 
 ## Configuration
 
