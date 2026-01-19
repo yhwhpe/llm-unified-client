@@ -9,6 +9,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
 	// Old import (to be replaced)
 	// oldLLM "agents/profile-builder/internal/llm"
@@ -167,25 +169,23 @@ func migrateConfiguration() {
 	}
 	*/
 
-	// NEW config
-	config := llm.Config{
-		Provider:   llm.ProviderDeepSeek,  // enum instead of string
-		APIKey:     "your-api-key",
-		BaseURL:    "https://api.deepseek.com",
-		DefaultModel: "deepseek-chat",     // renamed from Model
-		Timeout:    30 * time.Second,
-
-		// New features
-		DefaultTemperature: func() *float64 { t := 0.7; return &t }(),
-		DefaultMaxTokens:   func() *int { m := 1000; return &m }(),
-		DefaultTopP:        func() *float64 { p := 0.9; return &p }(),
-		DefaultTopK:        func() *int { k := 40; return &k }(),
-
-		// Provider-specific settings
-		ExtraConfig: map[string]interface{}{
-			"custom_param": "value",
-		},
-	}
+	// NEW config example:
+	// config := llm.Config{
+	//     Provider:   llm.ProviderDeepSeek,  // enum instead of string
+	//     APIKey:     "your-api-key",
+	//     BaseURL:    "https://api.deepseek.com",
+	//     DefaultModel: "deepseek-chat",     // renamed from Model
+	//     Timeout:    30 * time.Second,
+	//     // New features
+	//     DefaultTemperature: &[]float64{0.7}[0],
+	//     DefaultMaxTokens:   &[]int{1000}[0],
+	//     DefaultTopP:        &[]float64{0.9}[0],
+	//     DefaultTopK:        &[]int{40}[0],
+	//     // Provider-specific settings
+	//     ExtraConfig: map[string]interface{}{
+	//         "custom_param": "value",
+	//     },
+	// }
 }
 
 // Example 5: Error handling improvements
