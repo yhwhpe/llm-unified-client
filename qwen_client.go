@@ -23,7 +23,7 @@ func newQwenClient(config Config) (*qwenClient, error) {
 	}
 
 	if config.BaseURL == "" {
-		config.BaseURL = "https://dashscope.aliyuncs.com/api/v1"
+		config.BaseURL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 	}
 
 	if config.Timeout == 0 {
@@ -31,7 +31,7 @@ func newQwenClient(config Config) (*qwenClient, error) {
 	}
 
 	if config.DefaultModel == "" {
-		config.DefaultModel = "qwen-turbo"
+		config.DefaultModel = "qwen3-next-80b-a3b-instruct"
 	}
 
 	httpClient := &http.Client{
@@ -56,8 +56,8 @@ func (c *qwenClient) Generate(ctx context.Context, request Request) (*Response, 
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, "POST", c.config.BaseURL+"/services/aigc/text-generation/generation", bytes.NewBuffer(jsonPayload))
+	// Create HTTP request (use OpenAI-compatible endpoint)
+	req, err := http.NewRequestWithContext(ctx, "POST", c.config.BaseURL+"/chat/completions", bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -83,25 +83,34 @@ func (c *qwenClient) Generate(ctx context.Context, request Request) (*Response, 
 		return nil, fmt.Errorf("Qwen API error %d: %s", resp.StatusCode, string(body))
 	}
 
-	// Parse response (Qwen has a different response format)
+	// Parse response (OpenAI-compatible format for compatible-mode)
 	var apiResp struct {
-		Output struct {
-			Text string `json:"text"`
-		} `json:"output"`
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+				Role    string `json:"role"`
+			} `json:"message"`
+			FinishReason string `json:"finish_reason"`
+		} `json:"choices"`
 		Usage struct {
-			TotalTokens int `json:"total_tokens"`
+			PromptTokens     int `json:"prompt_tokens"`
+			CompletionTokens int `json:"completion_tokens"`
+			TotalTokens      int `json:"total_tokens"`
 		} `json:"usage"`
-		RequestId string `json:"request_id"`
 	}
 
 	if err := json.Unmarshal(body, &apiResp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
+	if len(apiResp.Choices) == 0 {
+		return nil, fmt.Errorf("no choices in response")
+	}
+
 	responseTime := time.Since(startTime)
 
 	return &Response{
-		Content:      apiResp.Output.Text,
+		Content:      apiResp.Choices[0].Message.Content,
 		Role:         RoleAssistant,
 		TokensUsed:   apiResp.Usage.TotalTokens,
 		ResponseTime: responseTime,
@@ -127,66 +136,55 @@ func (c *qwenClient) GetConfig() Config {
 	return c.config
 }
 
-// buildPayload builds the request payload for Qwen API
+// buildPayload builds the request payload for Qwen API (OpenAI-compatible)
 func (c *qwenClient) buildPayload(request Request) map[string]interface{} {
-	// Convert messages to Qwen format
-	var prompt string
-	if len(request.Messages) > 0 {
-		// For Qwen, we need to build a single prompt from messages
-		prompt = c.buildPromptFromMessages(request.Messages)
+	// Convert messages to OpenAI format
+	var messages []map[string]interface{}
+	for _, msg := range request.Messages {
+		messages = append(messages, map[string]interface{}{
+			"role":    string(msg.Role),
+			"content": msg.Content,
+		})
 	}
 
 	payload := map[string]interface{}{
-		"model": c.getModel(request.Model),
-		"input": map[string]interface{}{
-			"prompt": prompt,
-		},
-		"parameters": map[string]interface{}{
-			"max_tokens": c.getMaxTokens(request.MaxTokens),
-		},
+		"model":      c.getModel(request.Model),
+		"messages":   messages,
+		"max_tokens": c.getMaxTokens(request.MaxTokens),
 	}
 
 	// Add temperature if set
 	if request.Temperature != nil {
-		payload["parameters"].(map[string]interface{})["temperature"] = *request.Temperature
+		payload["temperature"] = *request.Temperature
 	} else if c.config.DefaultTemperature != nil {
-		payload["parameters"].(map[string]interface{})["temperature"] = *c.config.DefaultTemperature
+		payload["temperature"] = *c.config.DefaultTemperature
 	}
 
 	// Add top_p if set
 	if request.TopP != nil {
-		payload["parameters"].(map[string]interface{})["top_p"] = *request.TopP
+		payload["top_p"] = *request.TopP
 	} else if c.config.DefaultTopP != nil {
-		payload["parameters"].(map[string]interface{})["top_p"] = *c.config.DefaultTopP
+		payload["top_p"] = *c.config.DefaultTopP
 	}
 
-	// Add top_k if set
+	// Add top_k if set (Qwen-specific parameter)
 	if request.TopK != nil {
-		payload["parameters"].(map[string]interface{})["top_k"] = *request.TopK
+		payload["top_k"] = *request.TopK
 	} else if c.config.DefaultTopK != nil {
-		payload["parameters"].(map[string]interface{})["top_k"] = *c.config.DefaultTopK
+		payload["top_k"] = *c.config.DefaultTopK
 	}
+
+	// Add enable_thinking for Qwen models that support it
+	payload["enable_thinking"] = true
 
 	return payload
 }
 
-// buildPromptFromMessages converts chat messages to a single prompt for Qwen
+// buildPromptFromMessages is no longer needed for OpenAI-compatible format
+// Messages are sent as array in buildPayload
 func (c *qwenClient) buildPromptFromMessages(messages []Message) string {
-	var prompt string
-
-	for _, msg := range messages {
-		switch msg.Role {
-		case RoleSystem:
-			prompt += "System: " + msg.Content + "\n\n"
-		case RoleUser:
-			prompt += "User: " + msg.Content + "\n\n"
-		case RoleAssistant:
-			prompt += "Assistant: " + msg.Content + "\n\n"
-		}
-	}
-
-	prompt += "Assistant:"
-	return prompt
+	// This method is kept for backward compatibility but not used
+	return ""
 }
 
 // getModel returns the model to use for the request
