@@ -156,9 +156,9 @@ func (c *openAIClient) GetConfig() Config {
 // buildPayload builds the request payload for OpenAI API
 func (c *openAIClient) buildPayload(request Request) map[string]interface{} {
 	payload := map[string]interface{}{
-		"model": c.getModel(request.Model),
+		"model":    c.getModel(request.Model),
 		"messages": c.convertMessages(request.Messages),
-		"stream": request.Stream,
+		"stream":   request.Stream,
 	}
 
 	// Add parameters if set

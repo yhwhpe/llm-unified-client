@@ -58,11 +58,11 @@ func oldLLMUsage() {
 func newLLMUsage() {
 	// New config structure
 	config := llm.Config{
-		Provider:   llm.ProviderDeepSeek,
-		APIKey:     "your-key",
-		BaseURL:    "https://api.deepseek.com",
-		DefaultModel: "deepseek-chat",
-		Timeout:    30 * time.Second,
+		Provider:           llm.ProviderDeepSeek,
+		APIKey:             "your-key",
+		BaseURL:            "https://api.deepseek.com",
+		DefaultModel:       "deepseek-chat",
+		Timeout:            30 * time.Second,
 		DefaultTemperature: func() *float64 { t := 0.7; return &t }(),
 		DefaultMaxTokens:   func() *int { m := 100; return &m }(),
 	}
@@ -90,12 +90,12 @@ func newLLMUsage() {
 func migrateSimpleGeneration() {
 	// OLD
 	/*
-	request := oldLLM.Request{
-		Prompt: "Explain quantum computing",
-		Temperature: 0.5,
-		MaxTokens: 200,
-	}
-	response, _ := client.Generate(ctx, request)
+		request := oldLLM.Request{
+			Prompt: "Explain quantum computing",
+			Temperature: 0.5,
+			MaxTokens: 200,
+		}
+		response, _ := client.Generate(ctx, request)
 	*/
 
 	// NEW
@@ -111,9 +111,9 @@ func migrateSimpleGeneration() {
 func migrateChatGeneration() {
 	// OLD - didn't have chat history support
 	/*
-	prompt := "System: You are helpful\nUser: Hello\nAssistant: Hi!\nUser: How are you?"
-	request := oldLLM.Request{Prompt: prompt}
-	response, _ := client.Generate(ctx, request)
+		prompt := "System: You are helpful\nUser: Hello\nAssistant: Hi!\nUser: How are you?"
+		request := oldLLM.Request{Prompt: prompt}
+		response, _ := client.Generate(ctx, request)
 	*/
 
 	// NEW
@@ -129,7 +129,7 @@ func migrateChatGeneration() {
 		context.Background(),
 		history,
 		"How are you?", // New user message
-		"", // System prompt (already in history)
+		"",             // System prompt (already in history)
 	)
 	fmt.Println(response.Content)
 }
@@ -138,11 +138,11 @@ func migrateChatGeneration() {
 func migrateSystemPrompt() {
 	// OLD
 	/*
-	prompt := "You are a coding assistant. Write a function to reverse a string."
-	request := oldLLM.Request{
-		Prompt: prompt,
-		Temperature: 0.3,
-	}
+		prompt := "You are a coding assistant. Write a function to reverse a string."
+		request := oldLLM.Request{
+			Prompt: prompt,
+			Temperature: 0.3,
+		}
 	*/
 
 	// NEW
@@ -160,13 +160,13 @@ func migrateSystemPrompt() {
 func migrateConfiguration() {
 	// OLD config (from profile-builder)
 	/*
-	type LLMConfig struct {
-		Provider string
-		APIKey   string
-		BaseURL  string
-		Model    string
-		Timeout  time.Duration
-	}
+		type LLMConfig struct {
+			Provider string
+			APIKey   string
+			BaseURL  string
+			Model    string
+			Timeout  time.Duration
+		}
 	*/
 
 	// NEW config example:

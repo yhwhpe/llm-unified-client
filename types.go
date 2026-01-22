@@ -9,10 +9,10 @@ import (
 type Provider string
 
 const (
-	ProviderOpenAI  Provider = "openai"
+	ProviderOpenAI   Provider = "openai"
 	ProviderDeepSeek Provider = "deepseek"
-	ProviderQwen    Provider = "qwen"
-	ProviderAzure   Provider = "azure"
+	ProviderQwen     Provider = "qwen"
+	ProviderAzure    Provider = "azure"
 )
 
 // Message represents a chat message
@@ -40,13 +40,13 @@ type ChatHistory struct {
 // Request represents a request to the LLM
 type Request struct {
 	// Basic parameters
-	Messages     []Message         `json:"messages"`
-	SystemPrompt string           `json:"system_prompt,omitempty"`
-	Temperature  *float64         `json:"temperature,omitempty"`
-	MaxTokens    *int             `json:"max_tokens,omitempty"`
-	TopP         *float64         `json:"top_p,omitempty"`
-	TopK         *int             `json:"top_k,omitempty"`
-	Stream       bool             `json:"stream,omitempty"`
+	Messages     []Message `json:"messages"`
+	SystemPrompt string    `json:"system_prompt,omitempty"`
+	Temperature  *float64  `json:"temperature,omitempty"`
+	MaxTokens    *int      `json:"max_tokens,omitempty"`
+	TopP         *float64  `json:"top_p,omitempty"`
+	TopK         *int      `json:"top_k,omitempty"`
+	Stream       bool      `json:"stream,omitempty"`
 
 	// Provider-specific parameters
 	ExtraParams map[string]interface{} `json:"extra_params,omitempty"`
@@ -77,10 +77,10 @@ type StreamChunk struct {
 // Config holds configuration for LLM clients
 type Config struct {
 	// Provider settings
-	Provider   Provider `json:"provider"`
-	APIKey     string   `json:"api_key"`
-	BaseURL    string   `json:"base_url,omitempty"`
-	Timeout    time.Duration `json:"timeout"`
+	Provider Provider      `json:"provider"`
+	APIKey   string        `json:"api_key"`
+	BaseURL  string        `json:"base_url,omitempty"`
+	Timeout  time.Duration `json:"timeout"`
 
 	// Model settings
 	DefaultModel string `json:"default_model"`

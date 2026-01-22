@@ -13,11 +13,11 @@ func main() {
 	// Example 1: DeepSeek client (replaces old profile-builder LLM)
 	fmt.Println("=== DeepSeek Example ===")
 	deepSeekConfig := llm.Config{
-		Provider:   llm.ProviderDeepSeek,
-		APIKey:     "your-deepseek-api-key", // from env
-		BaseURL:    "https://api.deepseek.com",
-		DefaultModel: "deepseek-chat",
-		Timeout:    30 * time.Second,
+		Provider:           llm.ProviderDeepSeek,
+		APIKey:             "your-deepseek-api-key", // from env
+		BaseURL:            "https://api.deepseek.com",
+		DefaultModel:       "deepseek-chat",
+		Timeout:            30 * time.Second,
 		DefaultTemperature: func() *float64 { t := 0.7; return &t }(),
 		DefaultMaxTokens:   func() *int { m := 1000; return &m }(),
 	}
@@ -40,11 +40,11 @@ func main() {
 	// Example 2: OpenAI client
 	fmt.Println("\n=== OpenAI Example ===")
 	openAIConfig := llm.Config{
-		Provider:   llm.ProviderOpenAI,
-		APIKey:     "your-openai-api-key",
-		BaseURL:    "https://api.openai.com/v1",
+		Provider:     llm.ProviderOpenAI,
+		APIKey:       "your-openai-api-key",
+		BaseURL:      "https://api.openai.com/v1",
 		DefaultModel: "gpt-4",
-		Timeout:    30 * time.Second,
+		Timeout:      30 * time.Second,
 	}
 
 	openAIClient, err := llm.NewClient(openAIConfig)
@@ -93,9 +93,9 @@ func main() {
 		"You are an expert in Go programming.",
 		"Explain goroutines and channels.",
 	)
-	request.SetTemperature(0.3)  // More focused
-	request.SetMaxTokens(500)    // Limit response length
-	request.SetModel("gpt-4")    // Override default model
+	request.SetTemperature(0.3) // More focused
+	request.SetMaxTokens(500)   // Limit response length
+	request.SetModel("gpt-4")   // Override default model
 
 	if openAIClient != nil {
 		response, err := openAIClient.Generate(context.Background(), request)
