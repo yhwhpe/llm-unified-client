@@ -174,8 +174,11 @@ func (c *qwenClient) buildPayload(request Request) map[string]interface{} {
 		payload["top_k"] = *c.config.DefaultTopK
 	}
 
-	// Add enable_thinking for Qwen models that support it
-	payload["enable_thinking"] = true
+	// Add any extra parameters (e.g., enable_thinking for models that support it)
+	// Users can pass enable_thinking via request.ExtraParams if needed
+	for key, value := range request.ExtraParams {
+		payload[key] = value
+	}
 
 	return payload
 }
