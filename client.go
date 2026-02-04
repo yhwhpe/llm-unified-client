@@ -14,6 +14,8 @@ func NewClient(config Config) (Client, error) {
 		return NewQwenClient(config)
 	case ProviderAzure:
 		return NewAzureClient(config)
+	case ProviderCohere:
+		return newCohereClient(config)
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider: %s", config.Provider)
 	}
@@ -32,6 +34,11 @@ func NewQwenClient(config Config) (Client, error) {
 // NewAzureClient creates a client for Azure OpenAI
 func NewAzureClient(config Config) (Client, error) {
 	return newAzureClient(config)
+}
+
+// NewCohereClient creates a client for Cohere AI
+func NewCohereClient(config Config) (Client, error) {
+	return newCohereClient(config)
 }
 
 // Helper functions for building requests

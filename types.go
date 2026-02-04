@@ -13,6 +13,7 @@ const (
 	ProviderDeepSeek Provider = "deepseek"
 	ProviderQwen     Provider = "qwen"
 	ProviderAzure    Provider = "azure"
+	ProviderCohere   Provider = "cohere"
 )
 
 // Message represents a chat message
@@ -95,6 +96,23 @@ type Config struct {
 	ExtraConfig map[string]interface{} `json:"extra_config,omitempty"`
 }
 
+// EmbeddingRequest represents a request to generate embeddings
+type EmbeddingRequest struct {
+	// Input text or texts to embed
+	Input []string `json:"input"`
+
+	// Model override (optional)
+	Model *string `json:"model,omitempty"`
+}
+
+// EmbeddingResponse represents a response with embeddings
+type EmbeddingResponse struct {
+	Embeddings   [][]float64   `json:"embeddings"`
+	Model        string        `json:"model"`
+	TokensUsed   int           `json:"tokens_used,omitempty"`
+	ResponseTime time.Duration `json:"response_time"`
+}
+
 // Client defines the interface for LLM operations
 type Client interface {
 	// Generate generates a response from the LLM
@@ -102,6 +120,9 @@ type Client interface {
 
 	// GenerateWithHistory generates a response using chat history
 	GenerateWithHistory(ctx context.Context, history ChatHistory, userMessage string, systemPrompt string) (*Response, error)
+
+	// CreateEmbedding generates embeddings for the given text(s)
+	CreateEmbedding(ctx context.Context, request EmbeddingRequest) (*EmbeddingResponse, error)
 
 	// Close closes the client and cleans up resources
 	Close() error

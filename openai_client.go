@@ -153,6 +153,96 @@ func (c *openAIClient) GetConfig() Config {
 	return c.config
 }
 
+// CreateEmbedding generates embeddings for the given text(s)
+func (c *openAIClient) CreateEmbedding(ctx context.Context, request EmbeddingRequest) (*EmbeddingResponse, error) {
+	startTime := time.Now()
+
+	// Determine embedding model
+	embeddingModel := "text-embedding-3-small"
+	if request.Model != nil {
+		embeddingModel = *request.Model
+	} else if c.config.Provider == ProviderOpenAI {
+		// Use newer model for OpenAI
+		embeddingModel = "text-embedding-3-small"
+	}
+
+	// Prepare the request payload
+	payload := map[string]interface{}{
+		"model": embeddingModel,
+		"input": request.Input,
+	}
+
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal embedding request: %w", err)
+	}
+
+	// Create HTTP request
+	req, err := http.NewRequestWithContext(ctx, "POST", c.config.BaseURL+"/embeddings", bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create embedding request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.config.APIKey)
+
+	// Send request
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send embedding request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Read response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read embedding response: %w", err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("Embedding API error %d: %s", resp.StatusCode, string(body))
+	}
+
+	// Parse response
+	var apiResp struct {
+		Data []struct {
+			Embedding []float64 `json:"embedding"`
+			Index     int       `json:"index"`
+		} `json:"data"`
+		Model string `json:"model"`
+		Usage struct {
+			PromptTokens int `json:"prompt_tokens"`
+			TotalTokens  int `json:"total_tokens"`
+		} `json:"usage"`
+	}
+
+	if err := json.Unmarshal(body, &apiResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal embedding response: %w", err)
+	}
+
+	if len(apiResp.Data) == 0 {
+		return nil, fmt.Errorf("no embeddings in response")
+	}
+
+	// Extract embeddings in order
+	embeddings := make([][]float64, len(apiResp.Data))
+	for _, item := range apiResp.Data {
+		if item.Index >= len(embeddings) {
+			return nil, fmt.Errorf("invalid embedding index: %d", item.Index)
+		}
+		embeddings[item.Index] = item.Embedding
+	}
+
+	responseTime := time.Since(startTime)
+
+	return &EmbeddingResponse{
+		Embeddings:   embeddings,
+		Model:        apiResp.Model,
+		TokensUsed:   apiResp.Usage.TotalTokens,
+		ResponseTime: responseTime,
+	}, nil
+}
+
 // buildPayload builds the request payload for OpenAI API
 func (c *openAIClient) buildPayload(request Request) map[string]interface{} {
 	payload := map[string]interface{}{

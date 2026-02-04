@@ -147,6 +147,11 @@ func (c *azureClient) GetConfig() Config {
 	return c.config
 }
 
+// CreateEmbedding generates embeddings for the given text(s)
+func (c *azureClient) CreateEmbedding(ctx context.Context, request EmbeddingRequest) (*EmbeddingResponse, error) {
+	return nil, fmt.Errorf("embeddings not supported for Azure provider yet")
+}
+
 // buildPayload builds the request payload for Azure OpenAI API (same as OpenAI)
 func (c *azureClient) buildPayload(request Request) map[string]interface{} {
 	payload := map[string]interface{}{

@@ -136,6 +136,11 @@ func (c *qwenClient) GetConfig() Config {
 	return c.config
 }
 
+// CreateEmbedding generates embeddings for the given text(s)
+func (c *qwenClient) CreateEmbedding(ctx context.Context, request EmbeddingRequest) (*EmbeddingResponse, error) {
+	return nil, fmt.Errorf("embeddings not supported for Qwen provider yet")
+}
+
 // buildPayload builds the request payload for Qwen API (OpenAI-compatible)
 func (c *qwenClient) buildPayload(request Request) map[string]interface{} {
 	// Convert messages to OpenAI format

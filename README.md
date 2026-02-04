@@ -1,13 +1,14 @@
 # LLM Unified Client
 
-A unified Go client library for interacting with various Large Language Model providers including OpenAI, DeepSeek, Qwen (Alibaba Cloud), and Azure OpenAI.
+A unified Go client library for interacting with various Large Language Model providers including OpenAI, DeepSeek, Qwen (Alibaba Cloud), Azure OpenAI, and Cohere.
 
 📖 **[Integration Guide](INTEGRATION_GUIDE.md)** - Complete integration instructions and examples
 
 ## Features
 
-- **Multiple Provider Support**: OpenAI, DeepSeek, Qwen, Azure OpenAI
+- **Multiple Provider Support**: OpenAI, DeepSeek, Qwen, Azure OpenAI, Cohere
 - **Unified Interface**: Single API for all providers
+- **Embedding Generation**: Support for text embeddings (OpenAI, Cohere)
 - **Chat History Management**: Built-in support for conversation history
 - **Streaming Support**: Ready for streaming responses (future implementation)
 - **Flexible Configuration**: Extensive configuration options
@@ -112,6 +113,18 @@ config := llm.Config{
 }
 ```
 
+### Cohere Configuration
+
+```go
+config := llm.Config{
+    Provider:   llm.ProviderCohere,
+    APIKey:     "your-cohere-api-key",
+    BaseURL:    "https://api.cohere.ai/v1",
+    DefaultModel: "embed-multilingual-v3.0", // For embeddings
+    Timeout:    30 * time.Second,
+}
+```
+
 ## Usage Examples
 
 ### Simple Text Generation
@@ -178,6 +191,95 @@ request.SetModel("gpt-4")
 response, err := client.Generate(ctx, request)
 ```
 
+## Embedding Generation
+
+The library supports generating embeddings for text using OpenAI and Cohere providers.
+
+### Single Text Embedding
+
+```go
+// Create client (OpenAI or Cohere)
+config := llm.Config{
+    Provider:     llm.ProviderOpenAI,
+    APIKey:       "your-api-key",
+    DefaultModel: "text-embedding-3-small",
+}
+client, err := llm.NewClient(config)
+if err != nil {
+    log.Fatal(err)
+}
+defer client.Close()
+
+// Generate embedding
+embeddingReq := llm.EmbeddingRequest{
+    Input: []string{"Your text to embed"},
+}
+
+resp, err := client.CreateEmbedding(ctx, embeddingReq)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Embedding dimension: %d\n", len(resp.Embeddings[0]))
+fmt.Printf("Tokens used: %d\n", resp.TokensUsed)
+```
+
+### Batch Embedding
+
+```go
+// Generate embeddings for multiple texts
+texts := []string{
+    "I want to find a therapist for burnout",
+    "Looking for career coaching",
+    "Need help with anxiety and stress",
+}
+
+embeddingReq := llm.EmbeddingRequest{
+    Input: texts,
+}
+
+resp, err := client.CreateEmbedding(ctx, embeddingReq)
+if err != nil {
+    log.Fatal(err)
+}
+
+// resp.Embeddings[i] contains the embedding for texts[i]
+for i, embedding := range resp.Embeddings {
+    fmt.Printf("Text %d dimension: %d\n", i+1, len(embedding))
+}
+```
+
+### Cohere Multilingual Embeddings
+
+```go
+// Cohere supports excellent multilingual embeddings
+config := llm.Config{
+    Provider:     llm.ProviderCohere,
+    APIKey:       "your-cohere-api-key",
+    DefaultModel: "embed-multilingual-v3.0",
+}
+client, err := llm.NewClient(config)
+
+// Works with any language
+texts := []string{
+    "Hello world",
+    "Привет мир",
+    "你好世界",
+}
+
+resp, err := client.CreateEmbedding(ctx, llm.EmbeddingRequest{Input: texts})
+```
+
+### Embedding Use Cases
+
+- **Semantic Search**: Find similar documents or texts
+- **Clustering**: Group similar content together
+- **Classification**: Categorize texts based on similarity
+- **Recommendation**: Suggest similar items
+- **Matchmaking**: Match users based on semantic similarity (e.g., Mesa + Matchmaker)
+
+See `examples/embedding_example.go` for complete working examples.
+
 ## Chat History Management
 
 ```go
@@ -238,6 +340,12 @@ if err != nil {
 - Azure authentication integration
 - Custom deployment support
 - Azure monitoring integration
+
+### Cohere Features
+- Multilingual embeddings (100+ languages)
+- High-quality semantic search
+- Efficient embedding models
+- RAG (Retrieval-Augmented Generation) support
 
 ## Testing
 
