@@ -102,8 +102,9 @@ func (c *openAIClient) Generate(ctx context.Context, request Request) (*Response
 	var apiResp struct {
 		Choices []struct {
 			Message struct {
-				Role    string `json:"role"`
-				Content string `json:"content"`
+				Role             string `json:"role"`
+				Content          string `json:"content"`
+				ReasoningContent string `json:"reasoning_content"` // DeepSeek thinking mode
 			} `json:"message"`
 			FinishReason string `json:"finish_reason"`
 		} `json:"choices"`
@@ -125,11 +126,12 @@ func (c *openAIClient) Generate(ctx context.Context, request Request) (*Response
 	responseTime := time.Since(startTime)
 
 	return &Response{
-		Content:      apiResp.Choices[0].Message.Content,
-		Role:         MessageRole(apiResp.Choices[0].Message.Role),
-		TokensUsed:   apiResp.Usage.TotalTokens,
-		ResponseTime: responseTime,
-		FinishReason: apiResp.Choices[0].FinishReason,
+		Content:          apiResp.Choices[0].Message.Content,
+		Role:             MessageRole(apiResp.Choices[0].Message.Role),
+		TokensUsed:       apiResp.Usage.TotalTokens,
+		ResponseTime:     responseTime,
+		FinishReason:     apiResp.Choices[0].FinishReason,
+		ReasoningContent: apiResp.Choices[0].Message.ReasoningContent,
 	}, nil
 }
 
@@ -268,6 +270,17 @@ func (c *openAIClient) buildPayload(request Request) map[string]interface{} {
 		payload["top_p"] = *request.TopP
 	} else if c.config.DefaultTopP != nil {
 		payload["top_p"] = *c.config.DefaultTopP
+	}
+
+	// DeepSeek thinking mode (thinker vs instruct)
+	if c.config.Provider == ProviderDeepSeek {
+		thinkingEnabled := c.config.DeepSeekThinkingEnabled
+		if request.DeepSeekThinking != nil {
+			thinkingEnabled = *request.DeepSeekThinking
+		}
+		if thinkingEnabled {
+			payload["thinking"] = map[string]string{"type": "enabled"}
+		}
 	}
 
 	// Add extra parameters

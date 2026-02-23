@@ -54,6 +54,9 @@ type Request struct {
 
 	// Model configuration override
 	Model *string `json:"model,omitempty"`
+
+	// DeepSeek: per-request override for thinking mode. Nil = use Config.DeepSeekThinkingEnabled.
+	DeepSeekThinking *bool `json:"deepseek_thinking,omitempty"`
 }
 
 // Response represents a response from the LLM
@@ -63,6 +66,9 @@ type Response struct {
 	TokensUsed   int           `json:"tokens_used,omitempty"`
 	ResponseTime time.Duration `json:"response_time"`
 	FinishReason string        `json:"finish_reason,omitempty"`
+
+	// DeepSeek thinking mode: chain-of-thought reasoning (when thinking enabled)
+	ReasoningContent string `json:"reasoning_content,omitempty"`
 
 	// Streaming support
 	Stream chan StreamChunk `json:"-"` // For streaming responses
@@ -91,6 +97,11 @@ type Config struct {
 	DefaultMaxTokens   *int     `json:"default_max_tokens,omitempty"`
 	DefaultTopP        *float64 `json:"default_top_p,omitempty"`
 	DefaultTopK        *int     `json:"default_top_k,omitempty"`
+
+	// DeepSeek: enable thinking mode (reasoner/CoT). When true, request includes
+	// "thinking": {"type": "enabled"} and response may contain ReasoningContent.
+	// When false, uses instruct (non-thinking) mode. Only applies to ProviderDeepSeek.
+	DeepSeekThinkingEnabled bool `json:"deepseek_thinking_enabled,omitempty"`
 
 	// Provider-specific settings
 	ExtraConfig map[string]interface{} `json:"extra_config,omitempty"`

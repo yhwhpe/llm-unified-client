@@ -118,6 +118,11 @@ func (r *Request) SetStreaming(stream bool) {
 	r.Stream = stream
 }
 
+// SetDeepSeekThinking enables or disables DeepSeek thinking mode for this request (overrides Config).
+func (r *Request) SetDeepSeekThinking(enabled bool) {
+	r.DeepSeekThinking = &enabled
+}
+
 // ChatHistory methods
 
 // AddMessage adds a message to the chat history

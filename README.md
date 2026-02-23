@@ -75,8 +75,13 @@ config := llm.Config{
     Timeout:    30 * time.Second,
     DefaultTemperature: &temperature,
     DefaultMaxTokens:   &maxTokens,
+    // Thinker vs instruct: enable thinking mode (reasoner/CoT). When true, API receives
+    // "thinking": {"type": "enabled"} and response may include ReasoningContent.
+    DeepSeekThinkingEnabled: false, // false = instruct (default), true = thinker
 }
 ```
+
+Per-request override: `req.SetDeepSeekThinking(true)` to enable thinking for a single request. Response field `ReasoningContent` contains chain-of-thought when thinking is enabled.
 
 ### OpenAI Configuration
 
